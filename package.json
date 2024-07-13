@@ -1,0 +1,31 @@
+{
+  "name": "com.frokongames.scriptablerenderbloom",
+  "version": "0.0.1",
+  "displayName": "Scriptable Render Bloom",
+  "decription": "Bloom compatible with custom post-processes.",
+  "references": [ ],
+  "unity": "2021.3",
+  "unityRelease": "26f1",
+  "optionalUnityReferences": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "dependencies":  {  },
+  "keywords": [ "unity", "unity3d", "gamedev", "gamedevelopment", "indiedev", "bloom" ],
+  "category": "Unity",
+  "repository":
+  {
+    "type": "git",
+    "url": "git+https://github.com/FronkonGames/ScriptableRenderBloom.git"
+  },  
+  "author":
+  {
+    "name": "Martin Bustos",
+    "email": "fronkongames@gmail.com",
+    "url": "https://fronkongames.github.io/"
+  }
+}
