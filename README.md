@@ -1,7 +1,7 @@
 <p align="center"><img src=".github/logo.png"/></p>
 
 <p align="center">
-[![]()](https://github.com/FronkonGames/ScriptableRenderBloom/blob/70c8aba71d8a9cbb1baa51e0e0758f00cc21121f/.github/animation.mp4)
+![](https://github.com/FronkonGames/ScriptableRenderBloom/blob/70c8aba71d8a9cbb1baa51e0e0758f00cc21121f/.github/animation.mp4)
 </p>
 
 <p align="center"><b>Bloom effect compatible with ScriptableRenderPass</b></p>
