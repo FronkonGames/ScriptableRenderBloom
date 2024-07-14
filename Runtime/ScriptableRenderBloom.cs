@@ -99,9 +99,13 @@ namespace FronkonGames.ScriptableRenderBloom
         material.SetFloat(ShaderIDs.Threshold, settings.threshold);
         material.SetFloat(ShaderIDs.BloomUpOffset, settings.bloomUpOffset);
 
+#if UNITY_2022_1_OR_NEWER
+        cmd.Blit(colorBuffer, renderTextureDest);
+        cmd.Blit(colorBuffer, renderTextureThreshold, material, 0);
+#else
         Blit(cmd, colorBuffer, renderTextureDest);
-
         Blit(cmd, colorBuffer, renderTextureThreshold, material, 0);
+#endif
 
         RenderTexture[] renderTexturesBloomDown = new RenderTexture[settings.passes];
 
@@ -117,13 +121,21 @@ namespace FronkonGames.ScriptableRenderBloom
           downSize *= 2;
         }
 
+#if UNITY_2022_1_OR_NEWER
+        cmd.Blit(renderTextureThreshold, renderTexturesBloomDown[0]);
+#else
         Blit(cmd, renderTextureThreshold, renderTexturesBloomDown[0]);
+#endif
 
         for (int i = 1; i < renderTexturesBloomDown.Length; ++i)
         {
           material.SetFloat(ShaderIDs.BloomDownOffset, i / 2 + settings.bloomDownOffset);
 
+#if UNITY_2022_1_OR_NEWER
+          cmd.Blit(renderTexturesBloomDown[i - 1], renderTexturesBloomDown[i], material, 1);
+#else
           Blit(cmd, renderTexturesBloomDown[i - 1], renderTexturesBloomDown[i], material, 1);
+#endif
         }
 
         RenderTexture[] renderTextureBloomUp = new RenderTexture[settings.passes];
@@ -138,7 +150,11 @@ namespace FronkonGames.ScriptableRenderBloom
 
         cmd.SetGlobalTexture(Textures.PreFilterTexture, renderTexturesBloomDown[settings.passes - 1]);
 
+#if UNITY_2022_1_OR_NEWER
+        cmd.Blit(renderTexturesBloomDown[settings.passes - 2], renderTextureBloomUp[0], material, 2);
+#else
         Blit(cmd, renderTexturesBloomDown[settings.passes - 2], renderTextureBloomUp[0], material, 2);
+#endif
 
         for (int i = 1; i < settings.passes - 1; ++i)
         {
@@ -148,12 +164,20 @@ namespace FronkonGames.ScriptableRenderBloom
           material.SetFloat(ShaderIDs.BloomUpOffset, i / 2 + settings.bloomUpOffset);
 
           cmd.SetGlobalTexture(Textures.PreFilterTexture, preFilterTexture);
+#if UNITY_2022_1_OR_NEWER
+          cmd.Blit(currentTexture, renderTextureBloomUp[i], material, 2);
+#else
           Blit(cmd, currentTexture, renderTextureBloomUp[i], material, 2);
+#endif
         }
 
         cmd.SetGlobalTexture(Textures.BloomTexture, renderTextureBloomUp[settings.passes - 2]);
 
+#if UNITY_2022_1_OR_NEWER
+        cmd.Blit(renderTextureDest, colorBuffer, material, 3);
+#else
         Blit(cmd, renderTextureDest, colorBuffer, material, 3);
+#endif
 
         RenderTexture.ReleaseTemporary(renderTextureThreshold);
         RenderTexture.ReleaseTemporary(renderTextureDest);
@@ -167,18 +191,6 @@ namespace FronkonGames.ScriptableRenderBloom
         CommandBufferPool.Release(cmd);
       }
     }
-
-#if UNITY_2022_1_OR_NEWER
-    // TODO.
-    // cmd.Blit(colorBuffer, renderTextureHandle0, material, 0);
-    // cmd.Blit(renderTextureHandle0, colorBuffer, material, 1);
-#else
-    private void Blit(CommandBuffer cmd, RenderTargetIdentifier source, int target, Material material = null, int pass = 0) =>
-      Blit(cmd, source, target, material, pass);
-
-    private void Blit(CommandBuffer cmd, int source, int target, Material material = null, int pass = 0) =>
-      Blit(cmd, source, target, material, pass);
-#endif
 
     /// <summary> Injects one or multiple ScriptableRenderPass in the renderer. Called every frame once per camera. </summary>
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)

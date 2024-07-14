@@ -1,5 +1,24 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6368455960025167186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d80cb21965947bd46a78e0f01051c4fa, type: 3}
+  m_Name: ScriptableRenderBloom
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    intensity: 0.1
+    passes: 4
+    threshold: 0.4
+    bloomDownOffset: 1
+    bloomUpOffset: 1
 --- !u!114 &-4897633023001170727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34,8 +53,8 @@ MonoBehaviour:
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
   m_RendererFeatures:
-  - {fileID: -4897633023001170727}
-  m_RendererFeatureMap: d9eccadfb61c08bc
+  - {fileID: -6368455960025167186}
+  m_RendererFeatureMap: ae0afbbe0bb39ea7
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
