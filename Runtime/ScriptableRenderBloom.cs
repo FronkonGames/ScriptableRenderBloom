@@ -43,8 +43,8 @@ namespace FronkonGames.ScriptableRenderBloom
 
       private static class Textures
       {
-        internal const string PreviousTexture = "_PreTex";
-        internal const string BloomTexture    = "_BloomTex";
+        internal const string PreFilterTexture = "_PreFilterTex";
+        internal const string BloomTexture     = "_BloomTex";
       }
 
       /// <summary> Render pass constructor. </summary>
@@ -136,18 +136,18 @@ namespace FronkonGames.ScriptableRenderBloom
           renderTextureBloomUp[i].filterMode = FilterMode.Bilinear;
         }
 
-        cmd.SetGlobalTexture(Textures.PreviousTexture, renderTexturesBloomDown[settings.passes - 1]);
+        cmd.SetGlobalTexture(Textures.PreFilterTexture, renderTexturesBloomDown[settings.passes - 1]);
 
         Blit(cmd, renderTexturesBloomDown[settings.passes - 2], renderTextureBloomUp[0], material, 2);
 
         for (int i = 1; i < settings.passes - 1; ++i)
         {
-          RenderTexture previousTexture = renderTextureBloomUp[i - 1];
+          RenderTexture preFilterTexture = renderTextureBloomUp[i - 1];
           RenderTexture currentTexture = renderTexturesBloomDown[settings.passes - 2 - i];
 
           material.SetFloat(ShaderIDs.BloomUpOffset, i / 2 + settings.bloomUpOffset);
 
-          cmd.SetGlobalTexture(Textures.PreviousTexture, previousTexture);
+          cmd.SetGlobalTexture(Textures.PreFilterTexture, preFilterTexture);
           Blit(cmd, currentTexture, renderTextureBloomUp[i], material, 2);
         }
 

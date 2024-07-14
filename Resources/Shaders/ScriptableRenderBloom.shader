@@ -59,13 +59,13 @@ Shader "Hidden/Fronkon Games/Scriptable Render Bloom"
 
     half3 KawaseBlur(Texture2D tex, SamplerState sampler_name, float2 uv, float2 texelSize, half pexelOffset)
     {
-      half3 o = 0;
-      o += SAMPLE_TEXTURE2D(tex, sampler_name, uv + float2(pexelOffset +0.5, pexelOffset +0.5) * texelSize).rgb;
-      o += SAMPLE_TEXTURE2D(tex, sampler_name, uv + float2(-pexelOffset -0.5, pexelOffset +0.5) * texelSize).rgb;
-      o += SAMPLE_TEXTURE2D(tex, sampler_name, uv + float2(-pexelOffset -0.5, -pexelOffset -0.5) * texelSize).rgb;
-      o += SAMPLE_TEXTURE2D(tex, sampler_name, uv + float2(pexelOffset +0.5, -pexelOffset -0.5) * texelSize).rgb;
+      half3 output = 0;
+      output += SAMPLE_TEXTURE2D(tex, sampler_name, uv + float2(pexelOffset  + 0.5,  pexelOffset + 0.5) * texelSize).rgb;
+      output += SAMPLE_TEXTURE2D(tex, sampler_name, uv + float2(-pexelOffset - 0.5,  pexelOffset + 0.5) * texelSize).rgb;
+      output += SAMPLE_TEXTURE2D(tex, sampler_name, uv + float2(-pexelOffset - 0.5, -pexelOffset - 0.5) * texelSize).rgb;
+      output += SAMPLE_TEXTURE2D(tex, sampler_name, uv + float2(pexelOffset  + 0.5, -pexelOffset - 0.5) * texelSize).rgb;
 
-      return o * 0.25;
+      return output * 0.25;
     }
     ENDHLSL
 
@@ -81,14 +81,14 @@ Shader "Hidden/Fronkon Games/Scriptable Render Bloom"
 
       half4 Frag(const VertexOutput i) : SV_Target
       {
-        float4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-        float lum = dot(float3(0.2126, 0.7152, 0.0722), col.rgb);
+        half3 pixel = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).rgb;
+        float luminance = dot(float3(0.2126, 0.7152, 0.0722), pixel);
 
         UNITY_BRANCH
-        if (lum > _Threshold)
-          return col;
+        if (luminance <= _Threshold)
+          pixel = 0.0;
 
-        return float4(0,0,0,1);
+        return half4(pixel, 1.0);
       }     
       ENDHLSL
     }
@@ -105,13 +105,13 @@ Shader "Hidden/Fronkon Games/Scriptable Render Bloom"
 
       half4 Frag(const VertexOutput i) : SV_Target
       {
-        float4 color = float4(0,0,0,1);
+        half3 pixel = 0.0;
         float2 uv = i.uv;
         float2 stride = _MainTex_TexelSize.xy;
 
-        color.rgb = KawaseBlur(_MainTex, sampler_MainTex, uv, _MainTex_TexelSize, _BloomDownOffset);
+        pixel = KawaseBlur(_MainTex, sampler_MainTex, uv, _MainTex_TexelSize.xy, _BloomDownOffset);
 
-        return color;
+        return half4(pixel, 1.0);
       }
       ENDHLSL
     }
@@ -124,25 +124,25 @@ Shader "Hidden/Fronkon Games/Scriptable Render Bloom"
 		  #pragma vertex Vert
 		  #pragma fragment Frag
 
-      TEXTURE2D(_PreTex);
-      SAMPLER(sampler_PreTex);
+      TEXTURE2D(_PreFilterTex);
+      SAMPLER(sampler_PreFilterTex);
 
       half _BloomUpOffset;
 
       half4 Frag(const VertexOutput i) : SV_Target
       {
-        float4 color = float4(0, 0, 0, 1);
+        float3 pixel = 0.0;
         float2 uv = i.uv;
 
-        float2 prev_stride = 0.5 * _MainTex_TexelSize.xy;
-        float2 curr_stride = 1.0 * _MainTex_TexelSize.xy;
+        float2 prevFilterStride = 0.5 * _MainTex_TexelSize.xy;
+        float2 currentStride = 1.0 * _MainTex_TexelSize.xy;
 
-        float3 pre_tex = KawaseBlur(_MainTex, sampler_MainTex, uv, prev_stride, _BloomUpOffset);
-        float3 curr_tex = KawaseBlur(_PreTex, sampler_PreTex, uv, curr_stride, _BloomUpOffset);
+        float3 preFilterTexure = KawaseBlur(_MainTex, sampler_MainTex, uv, prevFilterStride, _BloomUpOffset);
+        float3 currentTex = KawaseBlur(_PreFilterTex, sampler_PreFilterTex, uv, currentStride, _BloomUpOffset);
 
-        color.rgb =  curr_tex + pre_tex;
+        pixel = currentTex + preFilterTexure;
 
-        return color;
+        return half4(pixel, 1.0);
       }
       ENDHLSL
     }
@@ -160,7 +160,7 @@ Shader "Hidden/Fronkon Games/Scriptable Render Bloom"
       
       float _Intensity;
       
-      float3 ACESToneMapping(float3 color, float adapted_lum)
+      half3 ACESToneMapping(half3 pixel, float adaptedLuminance)
       {
         const float A = 2.51;
         const float B = 0.03;
@@ -168,24 +168,24 @@ Shader "Hidden/Fronkon Games/Scriptable Render Bloom"
         const float D = 0.59;
         const float E = 0.14;
 
-        color *= adapted_lum;
+        pixel *= adaptedLuminance;
 
-        return (color * (A * color + B)) / (color * (C * color + D) + E);
+        return (pixel * (A * pixel + B)) / (pixel * (C * pixel + D) + E);
       }
 
       half4 Frag(const VertexOutput i) : SV_Target
       {
-        half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-        float3 bloom = SAMPLE_TEXTURE2D(_BloomTex, sampler_BloomTex, i.uv).rgb * _Intensity;
+        half3 pixel = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv).rgb;
+        half3 bloom = SAMPLE_TEXTURE2D(_BloomTex, sampler_BloomTex, i.uv).rgb * _Intensity;
 
-        bloom = ACESToneMapping(bloom, 1);
+        bloom = ACESToneMapping(bloom, 1.0);
 
-        float g = 1.0 / 2.2;
+        const float g = 1.0 / 2.2;
         bloom = saturate(pow(abs(bloom), float3(g, g, g)));
 
-        color.rgb += bloom;
+        pixel += bloom;
 
-        return color;
+        return half4(pixel, 1.0);
       }
       ENDHLSL
     }
